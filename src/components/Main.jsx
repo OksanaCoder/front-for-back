@@ -1,33 +1,39 @@
 import React, { Component } from 'react';
-import { Form, Button, Table} from 'react-bootstrap';
+import { Form, Button, Table, Modal} from 'react-bootstrap';
 
 class Main extends Component {
     constructor(props) {
       super(props);
       this.state = {
           data: [],
+          search: '',
         name : '',
         surname: '',
         email: '', 
         id: 0, 
         date: '',
-        submitted: false
+        submitted: false, 
+        show: false,
+        setShow: false
      }
    
-    //  this.handleChange = this.handleChange.bind(this);
-    //  this.handleSubmit = this.handleSubmit.bind(this);
-    }
   
+    }
 
-    // handleChange = (e) => {
+
+     handleClose = () => {
+         this.setState({show: false, setShow: false})
+     }
+  
+    handleChange = (e) => {
       
     
-    //     this.setState({
+        this.setState({
            
-    //             [e.target.name]: e.target.value 
+                [e.target.name]: e.target.value 
                 
-    //     })
-    // }
+        })
+    }
     
 
     componentDidMount = () => {
@@ -36,31 +42,60 @@ class Main extends Component {
         .then(data => this.setState({ data }));
             
     }
-    // handleSubmit = (e) => {
-    //     e.preventDefault();
-    //     this.setState({
-    //         submitted: true
-    //     })
-    //     alert('Your data sent successfully');
+    searchUsers = async () => {
+        fetch('http://localhost:3001/users/' + this.state.name)
+        .then(response => response.json())
+        .then(data => this.setState({ data }));
+    }
+    deleteItem = async (e) => {
+        e.preventDefault()
+        fetch('http://localhost:3001/users/' + this.state.id, {
+            method: 'DELETE',
+            
+        })
+        .then(response => response.json())
+        .then(data => this.setState({ data }));
+       
+    }
+    handleShow = async () => {
+        this.setState({show: true, setShow: true})
+
+    }
+
+    addItem = async (e) => {
+      
+        e.preventDefault();
+        this.setState({
+            submitted: true,
+            show: false, 
+            setShow: false
+        })
+        alert('Your data sent successfully');
         
-    //     fetch('http://localhost:3001/users', {
-    //         method: "POST",
-    //         headers: {"Content-Type": "application/json"},
-    //         body: JSON.stringify(this.state) // trying to send this text to the server
-    //     })
-    //         .then((response) => {
-    //             console.log('success writing to server', response)
-    //         })
-    //         .catch((err) => {
-    //             console.log('error writing to server', err);
-    //         })
-    // }
+        fetch('http://localhost:3001/users', {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(this.state)
+        })
+            .then((response) => {
+                console.log('success writing to server', response)
+            })
+            .catch((err) => {
+                console.log('error writing to server', err);
+            })
+    }
+   
+
     render(){
         return (
             <>
             <div className='container'>
-              
-                  <Table striped bordered hover size="sm">
+           
+                <input type='text' value={this.state.search} onChange={ e => this.setState({search: e.currentTarget.value})} />
+                <Button variant="outline-info" onClick={this.searchUsers}>Search</Button>
+          
+            
+                  <Table striped bordered hover size="sm" className='mt-3'>
                   <thead>
                     <tr>
                       <th>#</th>
@@ -74,24 +109,29 @@ class Main extends Component {
                   </thead>
                   <tbody>
                     
-        {this.state.data.map(elem => {
+        {this.state.data.map((elem, i) => {
                   return(  
-                    <tr>         
+                    <tr key={i}>         
                      <td>{elem.id}</td>
                       <td>{elem.name}</td>
                       <td>{elem.surname}</td>
                       <td>{elem.email}</td>
                       <td>{elem.birthDate}</td>
-                      <td><Button variant="outline-info">Edit</Button></td>
-                      <td><Button variant="outline-danger">Delete</Button></td>
+                      <td><Button variant="outline-info" onClick={this.changeItem}>Edit</Button></td>
+                      <td><Button variant="outline-danger" onClick={this.deleteItem}>Delete</Button></td>
                     </tr>
                        )
                     })}
                   </tbody>
                 </Table>
+                <Button variant='outline-dark' onClick={this.handleShow}>Add</Button>
              
-
-              {/* <Form onSubmit={this.handleSubmit}>
+                <Modal show={this.state.show} onHide={this.handleClose}>
+                <Modal.Header closeButton>
+                <Modal.Title>Fill the form</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                <Form onSubmit={this.handleSubmit}>
                    <Form.Group controlId="name">
                         <Form.Label>Name</Form.Label>
                         <Form.Control onChange={this.handleChange} type="text" name="name" placeholder="Enter name"  value={this.state.name}/>
@@ -105,22 +145,28 @@ class Main extends Component {
                         <Form.Control  onChange={this.handleChange} type="email" name="email" placeholder="Enter email" value={this.state.email}/>
                     </Form.Group>
 
-                    <Form.Group controlId="id">
-                        <Form.Label>ID</Form.Label>
-                        <Form.Control  onChange={this.handleChange} type="number" name="id" placeholder="Enter ID" value={this.state.id}/>
-                    </Form.Group>
-
+                
                     <Form.Group controlId="date">
                         <Form.Label>Date of Birth</Form.Label>
                         <Form.Control  onChange={this.handleChange} type="date" name="date" value={this.state.date}/>
                     </Form.Group>
 
                   
-                    <Button variant="primary" type="submit">
-                        Submit
-                    </Button>
-                    </Form> */}
+                    
+                    </Form> 
+                </Modal.Body>
+                <Modal.Footer>
+                <Button variant="secondary" onClick={this.handleClose}>
+                    Close
+                </Button>
+                <Button variant="primary" onClick={this.addItem}>
+                    Save Changes
+                </Button>
+                </Modal.Footer>
+            </Modal>
+            
 
+                
                     
                </div>
              {/* {this.state.submitted ? 
